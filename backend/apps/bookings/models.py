@@ -8,6 +8,7 @@ class Booking(models.Model):
         ("pending", "待确认"),
         ("confirmed", "已确认"),
         ("cancelled", "已取消"),
+        ("waitlist", "候补中"),
     ]
 
     route = models.ForeignKey(TravelRoute, related_name="bookings", on_delete=models.CASCADE)
@@ -16,6 +17,7 @@ class Booking(models.Model):
     party_size = models.PositiveIntegerField("报名人数", default=1)
     travel_date = models.DateField("出行日期")
     status = models.CharField("状态", max_length=20, choices=STATUS_CHOICES, default="pending")
+    waitlist_position = models.PositiveIntegerField("候补序号", null=True, blank=True)
     remark = models.CharField("备注", max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

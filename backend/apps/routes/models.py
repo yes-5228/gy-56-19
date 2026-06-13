@@ -40,7 +40,27 @@ class TravelRoute(models.Model):
 
     @property
     def enrolled_count(self):
-        return sum(booking.party_size for booking in self.bookings.exclude(status="cancelled"))
+        return sum(booking.party_size for booking in self.bookings.filter(status__in=["pending", "confirmed"]))
+
+    @property
+    def waitlist_count(self):
+        return sum(booking.party_size for booking in self.bookings.filter(status="waitlist"))
+
+    @property
+    def waitlist_bookings(self):
+        return self.bookings.filter(status="waitlist").order_by("waitlist_position", "created_at")
+
+    @property
+    def available_slots(self):
+        return max(0, self.max_group_size - self.enrolled_count)
+
+    @property
+    def is_full(self):
+        return self.available_slots == 0
+
+    @property
+    def has_waitlist(self):
+        return self.waitlist_count > 0
 
     @property
     def group_progress(self):

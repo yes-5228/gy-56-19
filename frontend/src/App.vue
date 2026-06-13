@@ -38,6 +38,7 @@
         :bookings="bookings"
         :notices="notices"
         @booking-created="handleBookingCreated"
+        @booking-cancelled="handleBookingCancelled"
       />
     </main>
   </div>
@@ -98,7 +99,26 @@ async function loadData() {
 }
 
 async function handleBookingCreated(payload) {
-  await travelApi.createBooking(payload);
+  try {
+    const result = await travelApi.createBooking(payload);
+    if (result && result.message) {
+      alert(result.message);
+    }
+  } catch (err) {
+    alert(`报名失败：${err.response?.data?.detail || err.message}`);
+  }
+  await loadData();
+}
+
+async function handleBookingCancelled(id) {
+  try {
+    const result = await travelApi.cancelBooking(id);
+    if (result && result.message) {
+      alert(result.message);
+    }
+  } catch (err) {
+    alert(`取消失败：${err.response?.data?.detail || err.message}`);
+  }
   await loadData();
 }
 
