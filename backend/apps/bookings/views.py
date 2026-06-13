@@ -25,23 +25,24 @@ class BookingViewSet(viewsets.ModelViewSet):
         )["waitlist_position__max"]
         return (max_position or 0) + 1
 
-    def _process_waitlist(self, route, released_slots):
-        if released_slots <= 0 or not route.has_waitlist:
+    def _process_waitlist(self, route):
+        if not route.has_waitlist:
             return []
 
         promoted = []
         waitlist_bookings = list(route.waitlist_bookings)
-        remaining_slots = released_slots
+        remaining_slots = route.available_slots
 
         for booking in waitlist_bookings:
             if remaining_slots <= 0:
                 break
-            if booking.party_size <= remaining_slots:
-                booking.status = "pending"
-                booking.waitlist_position = None
-                booking.save()
-                promoted.append(booking)
-                remaining_slots -= booking.party_size
+            if booking.party_size > remaining_slots:
+                break
+            booking.status = "pending"
+            booking.waitlist_position = None
+            booking.save()
+            promoted.append(booking)
+            remaining_slots -= booking.party_size
 
         self._renumber_waitlist(route)
         return promoted
@@ -117,7 +118,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         if released_slots > 0 and old_route == new_route:
-            promoted = self._process_waitlist(new_route, released_slots)
+            promoted = self._process_waitlist(new_route)
             if promoted:
                 promoted_names = ", ".join(b.contact_name for b in promoted)
                 return Response(
@@ -146,7 +147,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
 
         if old_status in ["pending", "confirmed"]:
-            promoted = self._process_waitlist(route, party_size)
+            promoted = self._process_waitlist(route)
             if promoted:
                 promoted_names = ", ".join(b.contact_name for b in promoted)
                 return Response(

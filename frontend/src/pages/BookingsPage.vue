@@ -76,7 +76,7 @@
               v-if="booking.status !== 'cancelled'"
               class="text-btn"
               type="button"
-              @click="cancelBooking(booking.id)"
+              @click="cancelBooking(booking)"
             >
               取消
             </button>
@@ -153,9 +153,13 @@ function submit() {
   form.remark = "";
 }
 
-function cancelBooking(id) {
-  if (confirm("确定要取消该报名吗？取消后将释放名额给候补用户。")) {
-    emit("booking-cancelled", id);
+function cancelBooking(booking) {
+  const isWaitlist = booking.status === "waitlist";
+  const msg = isWaitlist
+    ? "确定要退出候补队列吗？退出后您的候补位置将被释放。"
+    : "确定要取消该报名吗？取消后将释放名额给候补用户。";
+  if (confirm(msg)) {
+    emit("booking-cancelled", booking.id);
   }
 }
 </script>
