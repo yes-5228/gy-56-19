@@ -101,25 +101,29 @@ async function loadData() {
 async function handleBookingCreated(payload) {
   try {
     const result = await travelApi.createBooking(payload);
+    await loadData();
     if (result && result.message) {
       alert(result.message);
     }
   } catch (err) {
+    await loadData();
     alert(`报名失败：${err.response?.data?.detail || err.message}`);
   }
-  await loadData();
 }
 
 async function handleBookingCancelled(id) {
   try {
     const result = await travelApi.cancelBooking(id);
+    await loadData();
     if (result && result.message) {
       alert(result.message);
+    } else {
+      alert("操作已完成，页面已刷新为最新状态。");
     }
   } catch (err) {
+    await loadData();
     alert(`取消失败：${err.response?.data?.detail || err.message}`);
   }
-  await loadData();
 }
 
 onMounted(loadData);
